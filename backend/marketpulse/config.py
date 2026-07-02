@@ -12,6 +12,7 @@ class Settings(BaseSettings):
     port: int = 8000
 
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/marketpulse"
+    database_private_url: str = ""
     sync_interval_minutes: int = 5
     backfill_start_date: str = "2016-01-01"
     priority_symbols: str = "SPY,QQQ,AAPL,MSFT,GOOGL,AMZN,NVDA"
@@ -30,6 +31,10 @@ class Settings(BaseSettings):
     @property
     def priority_intraday_timeframe_list(self) -> list[str]:
         return [t.strip() for t in self.priority_intraday_timeframes.split(",") if t.strip()]
+
+    @property
+    def resolved_database_url(self) -> str:
+        return self.database_private_url or self.database_url
 
 
 settings = Settings()

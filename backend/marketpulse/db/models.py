@@ -1,6 +1,7 @@
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Boolean, DateTime, Numeric, String, Text, func
+from sqlalchemy import BigInteger, Boolean, DateTime, LargeBinary, Numeric, String, Text, func
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from marketpulse.db.base import Base
@@ -43,3 +44,17 @@ class SyncState(Base):
     newest_bar_ts: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_sync_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class ModelArtifact(Base):
+    __tablename__ = "model_artifacts"
+
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
+    version: Mapped[str] = mapped_column(String(32), unique=True)
+    onnx_data: Mapped[bytes] = mapped_column(LargeBinary)
+    manifest: Mapped[dict] = mapped_column(JSONB)
+    training_meta: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=False)
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )

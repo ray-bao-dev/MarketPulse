@@ -27,6 +27,7 @@ Optional:
 | `DEFAULT_SYMBOLS` | `SPY,QQQ,AAPL` |
 | `DEFAULT_START` | `2025-01-01` |
 | `ARTIFACTS_DIR` | `/app/artifacts` |
+| `CLASSIFIER_URL` | Classifier service URL — auto `POST /v1/reload` after training |
 
 ### Sizing
 
@@ -38,8 +39,10 @@ Training uses PyTorch on CPU. Use at least **2 GB RAM**; 4 GB recommended for la
 2. Confirm **Status: idle** and database is linked (`GET /health` → `database_configured: true`)
 3. Enter symbols, timeframe (5Min), start date
 4. Click **Run training pipeline**
-5. When complete, download `patterns.onnx` and `manifest.json`
-6. Upload ONNX to classifier storage and set `MODEL_PATH` on **MarketPulse-Classifier**
+5. When complete, download `patterns.onnx` and `manifest.json` (optional — model is saved to PostgreSQL)
+6. Call **Classifier** `POST /v1/reload` or redeploy classifier to load the new active model from the database
+
+The trainer writes the ONNX file and manifest to the `model_artifacts` table and marks it as **active**. The classifier reads that row on startup.
 
 ## Prerequisites
 
@@ -47,7 +50,7 @@ Worker must have synced **5Min** bars for your symbols (`PRIORITY_INTRADAY_TIMEF
 
 ## Local run (optional)
 
-Requires PostgreSQL with bars and TA-Lib installed:
+Requires PostgreSQL with bars and TA-Lib installed (Docker image pins `python:3.12-slim-bookworm` for `libta-lib0` apt packages).
 
 ```bash
 cd trainer

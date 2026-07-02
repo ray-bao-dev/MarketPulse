@@ -127,6 +127,41 @@ def _run_pipeline(
     export_onnx(weights, manifest_path, onnx_path)
     _log(f"ONNX exported to {onnx_path}")
 
+    _set_step("Saving model to PostgreSQL")
+    import json
+
+    from marketpulse.services.model_store import save_active_model
+
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    version = manifest.get("version", "1.0.0")
+    artifact_id = save_active_model(
+        db_url,
+        version=version,
+        onnx_bytes=onnx_path.read_bytes(),
+        manifest=manifest,
+        training_meta={
+            "symbols": symbols,
+            "timeframe": timeframe,
+            "start": start,
+            "epochs": epochs,
+            "splits": meta,
+        },
+    )
+    _log(f"Saved active model {version} to database (id={artifact_id})")
+
+    if settings.classifier_url:
+        _set_step("Reloading classifier")
+        import httpx
+
+        reload_url = settings.classifier_url.rstrip("/") + "/v1/reload"
+        try:
+            with httpx.Client(timeout=60.0) as client:
+                resp = client.post(reload_url)
+                resp.raise_for_status()
+            _log(f"Classifier reloaded: {reload_url}")
+        except Exception as exc:
+            _log(f"Classifier reload failed (redeploy or POST /v1/reload manually): {exc}")
+
     with _lock:
         _status.result = {
             "bars": len(bars),
@@ -134,6 +169,8 @@ def _run_pipeline(
             "timeframe": timeframe,
             "onnx": str(onnx_path),
             "manifest": str(manifest_path),
+            "model_version": version,
+            "artifact_id": artifact_id,
             "splits": meta,
         }
 

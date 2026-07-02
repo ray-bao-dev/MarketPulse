@@ -41,7 +41,7 @@ HTML_PAGE = """<!DOCTYPE html>
 </head>
 <body>
   <h1>MarketPulse Trainer</h1>
-  <p class="sub">Generate dataset from Railway PostgreSQL, train CNN, export ONNX — one click.</p>
+  <p class="sub">Train on Railway PostgreSQL — model saved to database; classifier reloads automatically if CLASSIFIER_URL is set.</p>
 
   <form id="form">
     <div>

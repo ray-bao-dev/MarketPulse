@@ -11,7 +11,7 @@ Each service has its own directory and `railway.toml`:
 | [`backend/`](backend/) | MarketPulse-BackEnd | `backend` |
 | [`worker/`](worker/) | MarketPulse-Worker | `.` (repo root) |
 | [`frontend/`](frontend/) | MarketPulse-FrontEnd | `frontend` |
-| [`classifier/`](classifier/) | MarketPulse-Classifier | `classifier` |
+| [`classifier/`](classifier/) | MarketPulse-Classifier | `.` (repo root) |
 | [`trainer/`](trainer/) | MarketPulse-Trainer | `.` (repo root) |
 
 Plus **PostgreSQL** from Railway (`railway add --database postgres`).
@@ -43,8 +43,8 @@ pip install -r requirements.txt && python run.py
 1. Add PostgreSQL database
 2. Deploy **BackEnd** — link `DATABASE_URL`, Alpaca keys, `CORS_ORIGINS`, and `CLASSIFIER_URL`
 3. Deploy **Worker** — same `DATABASE_URL` and Alpaca keys; root directory = repo root
-4. Deploy **Classifier** — set `MODEL_PATH` when ONNX artifact is available; no DB required
-5. Deploy **Trainer** (optional) — link `DATABASE_PRIVATE_URL`; web UI to train and download ONNX
+4. Deploy **Classifier** — link `DATABASE_PRIVATE_URL`; loads active model from `model_artifacts` table
+5. Deploy **Trainer** (optional) — link `DATABASE_PRIVATE_URL`; trains and saves model to DB
 6. Deploy **FrontEnd** — set `VITE_API_URL` to BackEnd URL
 
 See each service's `README.md` for details.

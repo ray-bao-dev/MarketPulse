@@ -1,9 +1,34 @@
+from contextlib import asynccontextmanager
+import logging
+
 from fastapi import FastAPI, HTTPException
 
-from classifier.inference import get_engine
+from classifier.inference import get_engine, reset_engine
+from classifier.model_loader import ensure_model_artifacts
 from classifier.schemas import DetectRequest, DetectResponse
 
-app = FastAPI(title="MarketPulse Classifier", version="0.1.0")
+logger = logging.getLogger(__name__)
+
+_artifact_info: dict = {}
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global _artifact_info
+    logging.basicConfig(level=logging.INFO)
+    _artifact_info = ensure_model_artifacts()
+    reset_engine()
+    engine = get_engine()
+    logger.info(
+        "Classifier ready mode=%s version=%s artifacts=%s",
+        engine.mode,
+        engine.model_version,
+        _artifact_info,
+    )
+    yield
+
+
+app = FastAPI(title="MarketPulse Classifier", version="0.2.0", lifespan=lifespan)
 
 
 @app.get("/health")
@@ -13,6 +38,23 @@ async def health() -> dict:
         "status": "ok",
         "model_version": engine.model_version,
         "inference_mode": engine.mode,
+        "artifacts": _artifact_info,
+    }
+
+
+@app.post("/v1/reload")
+async def reload_model() -> dict:
+    """Reload ONNX from database or configured URI (e.g. after training)."""
+    global _artifact_info
+    reset_engine()
+    _artifact_info = ensure_model_artifacts()
+    reset_engine()
+    engine = get_engine()
+    return {
+        "status": "ok",
+        "model_version": engine.model_version,
+        "inference_mode": engine.mode,
+        "artifacts": _artifact_info,
     }
 
 

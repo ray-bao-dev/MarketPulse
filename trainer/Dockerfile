@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.12-slim-bookworm
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libta-lib0 \
@@ -11,6 +11,7 @@ WORKDIR /app
 COPY trainer/requirements.txt ./trainer/requirements.txt
 RUN pip install --no-cache-dir -r trainer/requirements.txt
 
+COPY backend/marketpulse ./marketpulse
 COPY classifier ./classifier
 COPY trainer ./trainer
 

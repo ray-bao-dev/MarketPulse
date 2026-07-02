@@ -239,6 +239,11 @@ def _softmax(x: np.ndarray) -> np.ndarray:
 _engine: PatternEngine | None = None
 
 
+def reset_engine() -> None:
+    global _engine
+    _engine = None
+
+
 def get_engine() -> PatternEngine:
     global _engine
     if _engine is None:

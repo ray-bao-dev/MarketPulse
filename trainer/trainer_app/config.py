@@ -11,6 +11,7 @@ class Settings(BaseSettings):
     default_timeframe: str = "5Min"
     default_start: str = "2025-01-01"
     artifacts_dir: str = "/app/artifacts"
+    classifier_url: str = ""
 
     @property
     def resolved_database_url(self) -> str:
