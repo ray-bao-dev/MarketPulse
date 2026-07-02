@@ -9,6 +9,7 @@ class Settings(BaseSettings):
     alpaca_data_base_url: str = "https://data.alpaca.markets"
     alpaca_trading_base_url: str = "https://paper-api.alpaca.markets"
     cors_origins: str = "http://localhost:5173"
+    port: int = 8000
 
 
 settings = Settings()

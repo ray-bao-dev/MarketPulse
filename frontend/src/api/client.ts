@@ -24,8 +24,14 @@ export interface AssetSearchResult {
   tradable: boolean;
 }
 
+const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
+
+async function apiFetch(path: string): Promise<Response> {
+  return fetch(`${API_BASE}${path}`);
+}
+
 export async function getMarketStatus(): Promise<{ configured: boolean }> {
-  const res = await fetch("/api/market/status");
+  const res = await apiFetch("/api/market/status");
   if (!res.ok) throw new Error("Failed to check API status");
   return res.json();
 }
@@ -33,7 +39,7 @@ export async function getMarketStatus(): Promise<{ configured: boolean }> {
 export async function getSnapshots(
   symbols: string[],
 ): Promise<Record<string, AlpacaSnapshot>> {
-  const res = await fetch(`/api/market/snapshots?symbols=${symbols.join(",")}`);
+  const res = await apiFetch(`/api/market/snapshots?symbols=${symbols.join(",")}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail ?? "Failed to fetch snapshots");
@@ -52,7 +58,7 @@ export async function getBars(
     timeframe,
     limit: String(limit),
   });
-  const res = await fetch(`/api/market/bars?${params}`);
+  const res = await apiFetch(`/api/market/bars?${params}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail ?? "Failed to fetch bars");
@@ -63,7 +69,7 @@ export async function getBars(
 
 export async function searchAssets(query: string): Promise<AssetSearchResult[]> {
   const params = new URLSearchParams({ q: query, limit: "8" });
-  const res = await fetch(`/api/market/search?${params}`);
+  const res = await apiFetch(`/api/market/search?${params}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail ?? "Search failed");

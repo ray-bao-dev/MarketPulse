@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start": "serve dist -l $PORT -s"
   },
   "dependencies": {
     "lightweight-charts": "^4.2.2",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "serve": "^14.2.4"
   },
   "devDependencies": {
     "@types/react": "^18.3.12",
