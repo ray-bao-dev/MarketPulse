@@ -19,10 +19,12 @@ pip install -r training/requirements.txt
 
 Scripts add `classifier/` to `sys.path` automatically — you do **not** need `PYTHONPATH=.` when running `python training/...py` from `classifier/`.
 
-**TA-Lib** requires the C library before `pip install TA-Lib`:
-- Windows: download wheel from [cgohlke/talib-build releases](https://github.com/cgohlke/talib-build/releases) or use conda
-- macOS: `brew install ta-lib && pip install TA-Lib`
-- Linux: `sudo apt install ta-lib` or build from source
+**TA-Lib** (Python `>=0.6.5` bundles the C library on Linux; local dev may still need the system library):
+
+- Windows: `pip install TA-Lib` (wheel) or [cgohlke/talib-build releases](https://github.com/cgohlke/talib-build/releases)
+- macOS: `brew install ta-lib` optional; `pip install "TA-Lib>=0.6.5"` usually enough
+- Linux Docker: `pip install "TA-Lib>=0.6.5"` only
+- Linux local (no wheel): [`.deb` from ta-lib.org](https://ta-lib.org/install/) or build C lib from source, then `pip install "TA-Lib>=0.6.5"`
 
 ## Recommended workflow (TA-Lib weak labels)
 

@@ -50,7 +50,7 @@ Worker must have synced **5Min** bars for your symbols (`PRIORITY_INTRADAY_TIMEF
 
 ## Local run (optional)
 
-Requires PostgreSQL with bars and TA-Lib installed (Docker image pins `python:3.12-slim-bookworm` for `libta-lib0` apt packages).
+Requires PostgreSQL with bars. **TA-Lib** is installed via the PyPI wheel (`TA-Lib>=0.6.5`, bundles the C library — no apt packages needed in Docker).
 
 ```bash
 cd trainer
