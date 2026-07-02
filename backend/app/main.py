@@ -5,10 +5,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from app.config import settings
+from marketpulse.config import settings
 from app.routes.market import router as market_router
 
-app = FastAPI(title="MarketPulse API", version="0.1.0")
+app = FastAPI(title="MarketPulse API", version="0.2.0")
 
 origins = [origin.strip() for origin in settings.cors_origins.split(",") if origin.strip()]
 app.add_middleware(

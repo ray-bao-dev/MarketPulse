@@ -24,6 +24,15 @@ export interface AssetSearchResult {
   tradable: boolean;
 }
 
+export interface SyncStatus {
+  symbols_total: number;
+  sync_jobs_total: number;
+  sync_jobs_complete: number;
+  backfill_complete: boolean;
+  bar_counts: Record<string, number>;
+  last_error: string | null;
+}
+
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
 async function apiFetch(path: string): Promise<Response> {
@@ -51,13 +60,10 @@ export async function getSnapshots(
 export async function getBars(
   symbol: string,
   timeframe: string,
-  limit: number,
+  limit?: number,
 ): Promise<AlpacaBar[]> {
-  const params = new URLSearchParams({
-    symbol,
-    timeframe,
-    limit: String(limit),
-  });
+  const params = new URLSearchParams({ symbol, timeframe });
+  if (limit) params.set("limit", String(limit));
   const res = await apiFetch(`/api/market/bars?${params}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
@@ -76,4 +82,13 @@ export async function searchAssets(query: string): Promise<AssetSearchResult[]> 
   }
   const data = await res.json();
   return data.results ?? [];
+}
+
+export async function getSyncStatus(): Promise<SyncStatus> {
+  const res = await apiFetch("/api/market/sync/status");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail ?? "Failed to fetch sync status");
+  }
+  return res.json();
 }

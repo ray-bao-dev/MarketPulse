@@ -3,8 +3,10 @@ import {
   getBars,
   getMarketStatus,
   getSnapshots,
+  getSyncStatus,
   type AlpacaBar,
   type AlpacaSnapshot,
+  type SyncStatus,
 } from "../api/client";
 import { PriceChart } from "../components/PriceChart";
 import { SymbolSearch } from "../components/SymbolSearch";
@@ -12,9 +14,9 @@ import { Watchlist } from "../components/Watchlist";
 
 const DEFAULT_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"];
 const TIMEFRAMES = [
-  { label: "1H", value: "1Hour", limit: 120 },
-  { label: "1D", value: "1Day", limit: 180 },
-  { label: "1W", value: "1Week", limit: 104 },
+  { label: "1H", value: "1Hour" },
+  { label: "1D", value: "1Day" },
+  { label: "1W", value: "1Week" },
 ] as const;
 
 function formatPrice(value: number | undefined): string {
@@ -50,6 +52,7 @@ export function Dashboard() {
   const [timeframeIdx, setTimeframeIdx] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
 
   const timeframe = TIMEFRAMES[timeframeIdx];
 
@@ -60,7 +63,7 @@ export function Dashboard() {
 
   const refreshBars = useCallback(
     async (symbol: string, tf: (typeof TIMEFRAMES)[number]) => {
-      const data = await getBars(symbol, tf.value, tf.limit);
+      const data = await getBars(symbol, tf.value);
       setBars(data);
     },
     [],
@@ -71,6 +74,22 @@ export function Dashboard() {
       .then((status) => setConfigured(status.configured))
       .catch(() => setConfigured(false));
   }, []);
+
+  useEffect(() => {
+    if (!configured) return;
+
+    getSyncStatus()
+      .then(setSyncStatus)
+      .catch(() => undefined);
+
+    const interval = setInterval(() => {
+      getSyncStatus()
+        .then(setSyncStatus)
+        .catch(() => undefined);
+    }, 60_000);
+
+    return () => clearInterval(interval);
+  }, [configured]);
 
   useEffect(() => {
     if (!configured) return;
@@ -173,6 +192,15 @@ export function Dashboard() {
           )}
 
           {error && <div className="error-banner">{error}</div>}
+
+          {syncStatus && !syncStatus.backfill_complete && (
+            <div className="sync-banner">
+              Syncing historical data — {syncStatus.sync_jobs_complete.toLocaleString()} /{" "}
+              {syncStatus.sync_jobs_total.toLocaleString()} jobs complete (
+              {syncStatus.symbols_total.toLocaleString()} symbols). Charts use data as it
+              arrives.
+            </div>
+          )}
 
           <div className="symbol-header">
             <div className="symbol-identity">
