@@ -43,6 +43,16 @@ async def query_bars(
     end: datetime | None = None,
     limit: int | None = None,
 ) -> list[Bar]:
+    if limit and not start and not end:
+        stmt = (
+            select(Bar)
+            .where(Bar.symbol == symbol, Bar.timeframe == timeframe)
+            .order_by(Bar.ts.desc())
+            .limit(limit)
+        )
+        result = await session.execute(stmt)
+        return list(reversed(result.scalars().all()))
+
     stmt = (
         select(Bar)
         .where(Bar.symbol == symbol, Bar.timeframe == timeframe)

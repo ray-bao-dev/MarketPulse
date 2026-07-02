@@ -14,10 +14,16 @@ import { Watchlist } from "../components/Watchlist";
 
 const DEFAULT_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"];
 const TIMEFRAMES = [
-  { label: "1H", value: "1Hour" },
-  { label: "1D", value: "1Day" },
-  { label: "1W", value: "1Week" },
+  { label: "1H", value: "1Hour", lookbackDays: 5, visibleBars: 40, rangeLabel: "last 5 days" },
+  { label: "1D", value: "1Day", lookbackDays: 180, visibleBars: 120, rangeLabel: "last 6 months" },
+  { label: "1W", value: "1Week", lookbackDays: 730, visibleBars: 104, rangeLabel: "last 2 years" },
 ] as const;
+
+function lookbackStartDate(days: number): string {
+  const date = new Date();
+  date.setDate(date.getDate() - days);
+  return date.toISOString().slice(0, 10);
+}
 
 function formatPrice(value: number | undefined): string {
   if (value === undefined) return "—";
@@ -63,7 +69,9 @@ export function Dashboard() {
 
   const refreshBars = useCallback(
     async (symbol: string, tf: (typeof TIMEFRAMES)[number]) => {
-      const data = await getBars(symbol, tf.value);
+      const data = await getBars(symbol, tf.value, {
+        start: lookbackStartDate(tf.lookbackDays),
+      });
       setBars(data);
     },
     [],
@@ -254,7 +262,17 @@ export function Dashboard() {
 
           <section className="chart-section">
             {bars.length > 0 ? (
-              <PriceChart bars={bars} symbol={activeSymbol} timeframe={timeframe.value} />
+              <>
+                <PriceChart
+                  bars={bars}
+                  symbol={activeSymbol}
+                  timeframe={timeframe.value}
+                  visibleBars={timeframe.visibleBars}
+                />
+                <div className="chart-range-label">
+                  Showing {timeframe.rangeLabel} · {timeframe.label} bars
+                </div>
+              </>
             ) : (
               <div className="empty-state">
                 {loading

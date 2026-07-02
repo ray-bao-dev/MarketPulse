@@ -60,10 +60,11 @@ export async function getSnapshots(
 export async function getBars(
   symbol: string,
   timeframe: string,
-  limit?: number,
+  options?: { start?: string; limit?: number },
 ): Promise<AlpacaBar[]> {
   const params = new URLSearchParams({ symbol, timeframe });
-  if (limit) params.set("limit", String(limit));
+  if (options?.start) params.set("start", options.start);
+  if (options?.limit) params.set("limit", String(options.limit));
   const res = await apiFetch(`/api/market/bars?${params}`);
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

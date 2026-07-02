@@ -6,6 +6,7 @@ interface PriceChartProps {
   bars: AlpacaBar[];
   symbol: string;
   timeframe: string;
+  visibleBars: number;
 }
 
 function toChartTime(bar: AlpacaBar, timeframe: string): Time {
@@ -16,7 +17,7 @@ function toChartTime(bar: AlpacaBar, timeframe: string): Time {
   return bar.t.slice(0, 10) as Time;
 }
 
-export function PriceChart({ bars, symbol, timeframe }: PriceChartProps) {
+export function PriceChart({ bars, symbol, timeframe, visibleBars }: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -42,9 +43,21 @@ export function PriceChart({ bars, symbol, timeframe }: PriceChartProps) {
       rightPriceScale: {
         borderColor: "#27272a",
       },
+      handleScroll: {
+        mouseWheel: false,
+        pressedMouseMove: false,
+        horzTouchDrag: false,
+      },
+      handleScale: {
+        axisPressedMouseMove: { time: false, price: true },
+        mouseWheel: false,
+        pinch: false,
+      },
       timeScale: {
         borderColor: "#27272a",
         timeVisible: true,
+        fixLeftEdge: true,
+        fixRightEdge: true,
       },
       width: containerRef.current.clientWidth,
       height: containerRef.current.clientHeight,
@@ -82,7 +95,7 @@ export function PriceChart({ bars, symbol, timeframe }: PriceChartProps) {
   }, []);
 
   useEffect(() => {
-    if (!seriesRef.current) return;
+    if (!seriesRef.current || !chartRef.current) return;
 
     const data = bars.map((bar) => ({
       time: toChartTime(bar, timeframe),
@@ -93,8 +106,15 @@ export function PriceChart({ bars, symbol, timeframe }: PriceChartProps) {
     }));
 
     seriesRef.current.setData(data);
-    chartRef.current?.timeScale().fitContent();
-  }, [bars, symbol, timeframe]);
+
+    const visible = Math.min(visibleBars, data.length);
+    if (visible > 0) {
+      chartRef.current.timeScale().setVisibleLogicalRange({
+        from: data.length - visible,
+        to: data.length - 1,
+      });
+    }
+  }, [bars, symbol, timeframe, visibleBars]);
 
   return <div ref={containerRef} className="chart-container" />;
 }
