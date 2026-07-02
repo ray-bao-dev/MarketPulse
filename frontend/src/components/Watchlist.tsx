@@ -15,16 +15,12 @@ function formatPrice(value: number | undefined): string {
   });
 }
 
-function getChange(snapshot: AlpacaSnapshot | undefined): {
-  value: number;
-  pct: number;
-} | null {
+function getChangePct(snapshot: AlpacaSnapshot | undefined): number | null {
   if (!snapshot?.dailyBar || !snapshot?.prevDailyBar) return null;
   const current = snapshot.dailyBar.c;
   const previous = snapshot.prevDailyBar.c;
-  const value = current - previous;
-  const pct = previous !== 0 ? (value / previous) * 100 : 0;
-  return { value, pct };
+  if (previous === 0) return null;
+  return ((current - previous) / previous) * 100;
 }
 
 export function Watchlist({
@@ -41,9 +37,9 @@ export function Watchlist({
           snapshot?.latestTrade?.p ??
           snapshot?.dailyBar?.c ??
           snapshot?.latestQuote?.ap;
-        const change = getChange(snapshot);
+        const changePct = getChangePct(snapshot);
         const changeClass =
-          change === null ? "" : change.value >= 0 ? "positive" : "negative";
+          changePct === null ? "" : changePct >= 0 ? "positive" : "negative";
 
         return (
           <button
@@ -53,12 +49,11 @@ export function Watchlist({
             onClick={() => onSelect(symbol)}
           >
             <span className="watchlist-symbol">{symbol}</span>
-            <span className="watchlist-price">{formatPrice(price)}</span>
-            {change && (
-              <span className={`watchlist-change ${changeClass}`}>
-                {change.value >= 0 ? "+" : ""}
-                {change.value.toFixed(2)} ({change.pct >= 0 ? "+" : ""}
-                {change.pct.toFixed(2)}%)
+            <span className="watchlist-price mono-data">{formatPrice(price)}</span>
+            {changePct !== null && (
+              <span className={`watchlist-change mono-data ${changeClass}`}>
+                {changePct >= 0 ? "+" : ""}
+                {changePct.toFixed(2)}%
               </span>
             )}
           </button>

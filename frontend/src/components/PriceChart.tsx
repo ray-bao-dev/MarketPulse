@@ -2,6 +2,9 @@ import { createChart, ColorType, IChartApi, ISeriesApi, Time } from "lightweight
 import { useEffect, useRef } from "react";
 import type { AlpacaBar } from "../api/client";
 
+const CHART_BG = "#18181b";
+const GRID_COLOR = "#27272a";
+
 interface PriceChartProps {
   bars: AlpacaBar[];
   symbol: string;
@@ -27,21 +30,21 @@ export function PriceChart({ bars, symbol, timeframe, visibleBars }: PriceChartP
 
     const chart = createChart(containerRef.current, {
       layout: {
-        background: { type: ColorType.Solid, color: "#09090b" },
+        background: { type: ColorType.Solid, color: CHART_BG },
         textColor: "#71717a",
         fontFamily: '"IBM Plex Mono", monospace',
         fontSize: 11,
       },
       grid: {
-        vertLines: { color: "#1f1f23" },
-        horzLines: { color: "#1f1f23" },
+        vertLines: { color: GRID_COLOR },
+        horzLines: { color: GRID_COLOR },
       },
       crosshair: {
         vertLine: { color: "#52525b", labelBackgroundColor: "#27272a" },
         horzLine: { color: "#52525b", labelBackgroundColor: "#27272a" },
       },
       rightPriceScale: {
-        borderColor: "#27272a",
+        borderColor: GRID_COLOR,
       },
       handleScroll: {
         mouseWheel: false,
@@ -54,10 +57,11 @@ export function PriceChart({ bars, symbol, timeframe, visibleBars }: PriceChartP
         pinch: false,
       },
       timeScale: {
-        borderColor: "#27272a",
+        borderColor: GRID_COLOR,
         timeVisible: true,
         fixLeftEdge: true,
         fixRightEdge: true,
+        minimumHeight: 0,
       },
       width: containerRef.current.clientWidth,
       height: containerRef.current.clientHeight,
