@@ -75,19 +75,34 @@ export function Dashboard() {
   useEffect(() => {
     if (!configured) return;
 
-    setLoading(true);
-    setError(null);
-
-    Promise.all([refreshSnapshots(symbols), refreshBars(activeSymbol, timeframe)])
-      .catch((err: Error) => setError(err.message))
-      .finally(() => setLoading(false));
+    refreshSnapshots(symbols).catch(() => undefined);
 
     const interval = setInterval(() => {
       refreshSnapshots(symbols).catch(() => undefined);
     }, 30_000);
 
     return () => clearInterval(interval);
-  }, [configured, symbols, activeSymbol, timeframe, refreshSnapshots, refreshBars]);
+  }, [configured, symbols, refreshSnapshots]);
+
+  useEffect(() => {
+    if (!configured) return;
+
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    refreshBars(activeSymbol, timeframe)
+      .catch((err: Error) => {
+        if (!cancelled) setError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, activeSymbol, timeframe, refreshBars]);
 
   function handleAddSymbol(symbol: string) {
     if (symbols.includes(symbol)) {
@@ -211,10 +226,14 @@ export function Dashboard() {
 
           <section className="chart-section">
             {bars.length > 0 ? (
-              <PriceChart bars={bars} symbol={activeSymbol} />
+              <PriceChart bars={bars} symbol={activeSymbol} timeframe={timeframe.value} />
             ) : (
               <div className="empty-state">
-                {configured ? "Loading chart data…" : "No chart data available"}
+                {loading
+                  ? "Loading chart data…"
+                  : configured
+                    ? "No chart data for this timeframe"
+                    : "No chart data available"}
               </div>
             )}
           </section>

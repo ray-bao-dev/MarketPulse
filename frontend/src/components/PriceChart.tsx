@@ -1,13 +1,22 @@
-import { createChart, ColorType, IChartApi, ISeriesApi } from "lightweight-charts";
+import { createChart, ColorType, IChartApi, ISeriesApi, Time } from "lightweight-charts";
 import { useEffect, useRef } from "react";
 import type { AlpacaBar } from "../api/client";
 
 interface PriceChartProps {
   bars: AlpacaBar[];
   symbol: string;
+  timeframe: string;
 }
 
-export function PriceChart({ bars, symbol }: PriceChartProps) {
+function toChartTime(bar: AlpacaBar, timeframe: string): Time {
+  const isIntraday = /hour|min|t$/i.test(timeframe);
+  if (isIntraday) {
+    return Math.floor(new Date(bar.t).getTime() / 1000) as Time;
+  }
+  return bar.t.slice(0, 10) as Time;
+}
+
+export function PriceChart({ bars, symbol, timeframe }: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -76,7 +85,7 @@ export function PriceChart({ bars, symbol }: PriceChartProps) {
     if (!seriesRef.current) return;
 
     const data = bars.map((bar) => ({
-      time: (new Date(bar.t).getTime() / 1000) as unknown as string,
+      time: toChartTime(bar, timeframe),
       open: bar.o,
       high: bar.h,
       low: bar.l,
@@ -85,7 +94,7 @@ export function PriceChart({ bars, symbol }: PriceChartProps) {
 
     seriesRef.current.setData(data);
     chartRef.current?.timeScale().fitContent();
-  }, [bars, symbol]);
+  }, [bars, symbol, timeframe]);
 
   return <div ref={containerRef} className="chart-container" />;
 }
