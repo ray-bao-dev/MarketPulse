@@ -1,5 +1,9 @@
-from fastapi import FastAPI
+from pathlib import Path
+
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.routes.market import router as market_router
@@ -17,7 +21,38 @@ app.add_middleware(
 
 app.include_router(market_router, prefix="/api")
 
+STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
+
 
 @app.get("/api/health")
 async def health() -> dict:
     return {"status": "ok"}
+
+
+def _mount_frontend() -> None:
+    if not STATIC_DIR.is_dir():
+        return
+
+    assets_dir = STATIC_DIR / "assets"
+    if assets_dir.is_dir():
+        app.mount("/assets", StaticFiles(directory=assets_dir), name="assets")
+
+    index_file = STATIC_DIR / "index.html"
+
+    @app.get("/", include_in_schema=False)
+    async def serve_index() -> FileResponse:
+        return FileResponse(index_file)
+
+    @app.get("/{path:path}", include_in_schema=False)
+    async def serve_spa(path: str) -> FileResponse:
+        if path.startswith("api/") or path.startswith("assets/"):
+            raise HTTPException(status_code=404)
+
+        candidate = STATIC_DIR / path
+        if candidate.is_file():
+            return FileResponse(candidate)
+
+        return FileResponse(index_file)
+
+
+_mount_frontend()
