@@ -7,6 +7,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from marketpulse.alpaca import parse_alpaca_ts
 from marketpulse.db.models import Bar, Symbol, SyncState
 
+# asyncpg/PostgreSQL limit is 32767 bind parameters per query
+INSERT_BATCH_SIZE = 500
+
+
+def _batched(items: list, size: int):
+    for i in range(0, len(items), size):
+        yield items[i : i + size]
+
 
 def alpaca_bar_to_row(symbol: str, timeframe: str, raw: dict) -> dict:
     return {
@@ -27,11 +35,14 @@ async def upsert_bars(session: AsyncSession, rows: list[dict]) -> int:
     if not rows:
         return 0
 
-    stmt = insert(Bar).values(rows)
-    stmt = stmt.on_conflict_do_nothing(index_elements=["symbol", "timeframe", "ts"])
-    result = await session.execute(stmt)
+    inserted = 0
+    for chunk in _batched(rows, INSERT_BATCH_SIZE):
+        stmt = insert(Bar).values(chunk)
+        stmt = stmt.on_conflict_do_nothing(index_elements=["symbol", "timeframe", "ts"])
+        result = await session.execute(stmt)
+        inserted += result.rowcount or 0
     await session.commit()
-    return result.rowcount or 0
+    return inserted
 
 
 async def query_bars(
@@ -112,18 +123,39 @@ async def upsert_symbols(session: AsyncSession, assets: list[dict]) -> int:
     if not rows:
         return 0
 
-    stmt = insert(Symbol).values(rows)
-    stmt = stmt.on_conflict_do_update(
-        index_elements=["symbol"],
-        set_={
-            "name": stmt.excluded.name,
-            "exchange": stmt.excluded.exchange,
-            "is_active": stmt.excluded.is_active,
-        },
-    )
-    await session.execute(stmt)
+    total = 0
+    for chunk in _batched(rows, INSERT_BATCH_SIZE):
+        stmt = insert(Symbol).values(chunk)
+        stmt = stmt.on_conflict_do_update(
+            index_elements=["symbol"],
+            set_={
+                "name": stmt.excluded.name,
+                "exchange": stmt.excluded.exchange,
+                "is_active": stmt.excluded.is_active,
+            },
+        )
+        await session.execute(stmt)
+        total += len(chunk)
     await session.commit()
-    return len(rows)
+    return total
+
+
+async def ensure_sync_states_batch(
+    session: AsyncSession, symbols: list[str], timeframes: list[str]
+) -> None:
+    rows = [
+        {"symbol": symbol, "timeframe": timeframe, "backfill_complete": False}
+        for symbol in symbols
+        for timeframe in timeframes
+    ]
+    if not rows:
+        return
+
+    for chunk in _batched(rows, INSERT_BATCH_SIZE):
+        stmt = insert(SyncState).values(chunk)
+        stmt = stmt.on_conflict_do_nothing(index_elements=["symbol", "timeframe"])
+        await session.execute(stmt)
+    await session.commit()
 
 
 async def get_sync_state(

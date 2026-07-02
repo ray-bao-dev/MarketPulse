@@ -11,6 +11,7 @@ from marketpulse.db.session import get_session_factory
 from marketpulse.services.bars import (
     alpaca_bar_to_row,
     ensure_sync_state,
+    ensure_sync_states_batch,
     pick_next_backfill_job,
     update_sync_state,
     upsert_bars,
@@ -22,15 +23,11 @@ logger = logging.getLogger(__name__)
 
 async def bootstrap_symbols() -> int:
     assets = await alpaca_client.list_assets()
+    symbols = [a["symbol"] for a in assets if a.get("symbol")]
     factory = get_session_factory()
     async with factory() as session:
         count = await upsert_symbols(session, assets)
-        for asset in assets:
-            symbol = asset.get("symbol")
-            if not symbol:
-                continue
-            for timeframe in settings.timeframe_list:
-                await ensure_sync_state(session, symbol, timeframe)
+        await ensure_sync_states_batch(session, symbols, settings.timeframe_list)
     logger.info("Bootstrapped %s symbols (%s assets from Alpaca)", count, len(assets))
     return count
 
