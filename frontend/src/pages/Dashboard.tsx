@@ -173,6 +173,15 @@ export function Dashboard() {
     setActiveSymbol(symbol);
   }
 
+  function handleRemoveSymbol(symbol: string) {
+    if (symbols.length <= 1) return;
+
+    setSymbols((prev) => prev.filter((s) => s !== symbol));
+    if (activeSymbol === symbol) {
+      setActiveSymbol(symbols.find((s) => s !== symbol) ?? DEFAULT_SYMBOLS[0]);
+    }
+  }
+
   const activeSnapshot = snapshots[activeSymbol];
   const price =
     activeSnapshot?.latestTrade?.p ??
@@ -239,6 +248,7 @@ export function Dashboard() {
             activeSymbol={activeSymbol}
             snapshots={snapshots}
             onSelect={setActiveSymbol}
+            onRemove={handleRemoveSymbol}
           />
         </aside>
 
