@@ -3,10 +3,8 @@ import {
   getBars,
   getMarketStatus,
   getSnapshots,
-  getSyncStatus,
   type AlpacaBar,
   type AlpacaSnapshot,
-  type SyncStatus,
 } from "../api/client";
 import { ChartToolbar } from "../components/ChartToolbar";
 import { PriceChart } from "../components/PriceChart";
@@ -90,7 +88,6 @@ export function Dashboard() {
   const [timeframeIdx, setTimeframeIdx] = useState(1);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [historyOpen, setHistoryOpen] = useHistoryOpenDefault();
 
   const timeframe = TIMEFRAMES[timeframeIdx];
@@ -115,22 +112,6 @@ export function Dashboard() {
       .then((status) => setConfigured(status.configured))
       .catch(() => setConfigured(false));
   }, []);
-
-  useEffect(() => {
-    if (!configured) return;
-
-    getSyncStatus()
-      .then(setSyncStatus)
-      .catch(() => undefined);
-
-    const interval = setInterval(() => {
-      getSyncStatus()
-        .then(setSyncStatus)
-        .catch(() => undefined);
-    }, 60_000);
-
-    return () => clearInterval(interval);
-  }, [configured]);
 
   useEffect(() => {
     if (!configured) return;
@@ -199,45 +180,8 @@ export function Dashboard() {
 
   const recentBars = [...bars].reverse().slice(0, 12);
 
-  const syncPct =
-    syncStatus && syncStatus.sync_jobs_total > 0
-      ? Math.round(
-          (syncStatus.sync_jobs_complete / syncStatus.sync_jobs_total) * 100,
-        )
-      : null;
-
-  const showSync =
-    syncStatus &&
-    !syncStatus.backfill_complete &&
-    syncStatus.sync_jobs_total > 0;
-
   return (
-    <>
-      <header className="top-bar">
-        <div className="brand">
-          <span className="brand-name">MarketPulse</span>
-          <span className="brand-tag">Market Data</span>
-        </div>
-        <div className="status-cluster">
-          {configured !== null && (
-            <span
-              className={`status-item${configured ? " live" : " offline"}`}
-              title={configured ? "Alpaca connected" : "Alpaca not configured"}
-            >
-              <span className="status-dot" />
-              {configured ? "Live" : "Offline"}
-            </span>
-          )}
-          {showSync && syncPct !== null && (
-            <span className="status-item syncing" title="Historical data sync">
-              <span className="status-dot" />
-              Sync {syncPct}%
-            </span>
-          )}
-        </div>
-      </header>
-
-      <div className="dashboard">
+    <div className="dashboard">
         <aside className="sidebar">
           <div className="sidebar-header">
             <h2 className="sidebar-title">Watchlist</h2>
@@ -399,7 +343,6 @@ export function Dashboard() {
             )}
           </section>
         </main>
-      </div>
-    </>
+    </div>
   );
 }
