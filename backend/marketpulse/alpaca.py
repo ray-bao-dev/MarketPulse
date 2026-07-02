@@ -14,6 +14,9 @@ def _default_start(timeframe: str, limit: int) -> str:
 
     if tf in ("1hour", "1h") or tf.endswith("hour") or tf.endswith("h"):
         delta = timedelta(hours=limit * 3)
+    elif "min" in tf:
+        # ~78 five-minute bars per regular US session
+        delta = timedelta(days=max(5, int(limit / 60) + 3))
     elif tf in ("1week", "1w") or tf.endswith("week") or tf.endswith("w"):
         delta = timedelta(weeks=limit + 8)
     elif tf in ("1day", "1d") or tf.endswith("day") or tf.endswith("d"):

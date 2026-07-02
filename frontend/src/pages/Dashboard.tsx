@@ -14,6 +14,13 @@ import { Watchlist } from "../components/Watchlist";
 const DEFAULT_SYMBOLS = ["AAPL", "MSFT", "GOOGL", "AMZN", "NVDA"];
 const TIMEFRAMES = [
   {
+    label: "5M",
+    value: "5Min",
+    lookbackDays: 5,
+    visibleBars: 78,
+    rangeLabel: "Last 5 days",
+  },
+  {
     label: "1H",
     value: "1Hour",
     lookbackDays: 5,
