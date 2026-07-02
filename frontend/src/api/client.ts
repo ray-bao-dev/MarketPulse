@@ -33,10 +33,26 @@ export interface SyncStatus {
   last_error: string | null;
 }
 
+export interface PatternDetection {
+  t: string;
+  label: string;
+  confidence: number;
+  direction: "bullish" | "bearish" | "neutral" | string;
+}
+
+export interface DetectPatternsResult {
+  symbol: string;
+  timeframe: string;
+  bars: AlpacaBar[];
+  patterns: PatternDetection[];
+  model_version: string | null;
+  inference_mode: string | null;
+}
+
 const API_BASE = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
-async function apiFetch(path: string): Promise<Response> {
-  return fetch(`${API_BASE}${path}`);
+async function apiFetch(path: string, init?: RequestInit): Promise<Response> {
+  return fetch(`${API_BASE}${path}`, init);
 }
 
 export async function getMarketStatus(): Promise<{ configured: boolean }> {
@@ -90,6 +106,24 @@ export async function getSyncStatus(): Promise<SyncStatus> {
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));
     throw new Error(body.detail ?? "Failed to fetch sync status");
+  }
+  return res.json();
+}
+
+export async function detectPatterns(input: {
+  symbol: string;
+  timeframe: string;
+  start: string;
+  end?: string;
+}): Promise<DetectPatternsResult> {
+  const res = await apiFetch("/api/analysis/detect", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.detail ?? "Pattern detection failed");
   }
   return res.json();
 }

@@ -28,6 +28,12 @@ async def bootstrap_symbols() -> int:
     async with factory() as session:
         count = await upsert_symbols(session, assets)
         await ensure_sync_states_batch(session, symbols, settings.timeframe_list)
+        if settings.priority_intraday_timeframe_list:
+            await ensure_sync_states_batch(
+                session,
+                settings.priority_symbol_list,
+                settings.priority_intraday_timeframe_list,
+            )
     logger.info("Bootstrapped %s symbols (%s assets from Alpaca)", count, len(assets))
     return count
 

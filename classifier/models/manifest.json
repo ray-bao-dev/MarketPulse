@@ -1,0 +1,17 @@
+{
+  "version": "1.0.0",
+  "window_size": 10,
+  "image_size": 64,
+  "threshold": 0.65,
+  "timeframes": ["5Min"],
+  "label_source": "talib",
+  "classes": [
+    "none",
+    "hammer",
+    "doji",
+    "bullish_engulfing",
+    "bearish_engulfing",
+    "shooting_star",
+    "morning_star"
+  ]
+}

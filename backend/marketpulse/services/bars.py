@@ -5,6 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from marketpulse.alpaca import parse_alpaca_ts
+from marketpulse.config import settings
 from marketpulse.db.models import Bar, Symbol, SyncState
 
 # asyncpg/PostgreSQL limit is 32767 bind parameters per query
@@ -219,7 +220,11 @@ async def get_sync_status(session: AsyncSession) -> dict:
     )
     total_jobs = await session.scalar(select(func.count()).select_from(SyncState))
     bar_counts: dict[str, int] = {}
-    for tf in ("1Hour", "1Day", "1Week"):
+    count_timeframes = list(settings.timeframe_list)
+    for tf in settings.priority_intraday_timeframe_list:
+        if tf not in count_timeframes:
+            count_timeframes.append(tf)
+    for tf in count_timeframes:
         count = await session.scalar(
             select(func.count()).select_from(Bar).where(Bar.timeframe == tf)
         )
@@ -243,8 +248,11 @@ async def get_sync_status(session: AsyncSession) -> dict:
 
 
 async def pick_next_backfill_job(session: AsyncSession, priority: list[str]) -> tuple[str, str] | None:
+    priority_timeframes = (
+        settings.priority_intraday_timeframe_list + settings.timeframe_list
+    )
     for symbol in priority:
-        for timeframe in ("1Hour", "1Day", "1Week"):
+        for timeframe in priority_timeframes:
             state = await get_sync_state(session, symbol, timeframe)
             if state is None or not state.backfill_complete:
                 return symbol, timeframe

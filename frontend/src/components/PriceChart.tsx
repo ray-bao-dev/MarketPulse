@@ -1,4 +1,4 @@
-import { createChart, ColorType, IChartApi, ISeriesApi, Time } from "lightweight-charts";
+import { createChart, ColorType, IChartApi, ISeriesApi, Time, type SeriesMarker } from "lightweight-charts";
 import { useEffect, useRef } from "react";
 import type { AlpacaBar } from "../api/client";
 
@@ -9,7 +9,9 @@ interface PriceChartProps {
   bars: AlpacaBar[];
   symbol: string;
   timeframe: string;
-  visibleBars: number;
+  visibleBars?: number;
+  markers?: SeriesMarker<Time>[];
+  fitAll?: boolean;
 }
 
 function toChartTime(bar: AlpacaBar, timeframe: string): Time {
@@ -20,7 +22,14 @@ function toChartTime(bar: AlpacaBar, timeframe: string): Time {
   return bar.t.slice(0, 10) as Time;
 }
 
-export function PriceChart({ bars, symbol, timeframe, visibleBars }: PriceChartProps) {
+export function PriceChart({
+  bars,
+  symbol,
+  timeframe,
+  visibleBars,
+  markers = [],
+  fitAll = false,
+}: PriceChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const seriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
@@ -111,14 +120,23 @@ export function PriceChart({ bars, symbol, timeframe, visibleBars }: PriceChartP
 
     seriesRef.current.setData(data);
 
-    const visible = Math.min(visibleBars, data.length);
-    if (visible > 0) {
-      chartRef.current.timeScale().setVisibleLogicalRange({
-        from: data.length - visible,
-        to: data.length - 1,
-      });
+    if (fitAll && data.length > 0) {
+      chartRef.current.timeScale().fitContent();
+    } else if (visibleBars) {
+      const visible = Math.min(visibleBars, data.length);
+      if (visible > 0) {
+        chartRef.current.timeScale().setVisibleLogicalRange({
+          from: data.length - visible,
+          to: data.length - 1,
+        });
+      }
     }
-  }, [bars, symbol, timeframe, visibleBars]);
+  }, [bars, symbol, timeframe, visibleBars, fitAll]);
+
+  useEffect(() => {
+    if (!seriesRef.current) return;
+    seriesRef.current.setMarkers(markers);
+  }, [markers]);
 
   return <div ref={containerRef} className="chart-container" />;
 }

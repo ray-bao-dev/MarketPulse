@@ -14,8 +14,10 @@ class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/marketpulse"
     sync_interval_minutes: int = 5
     backfill_start_date: str = "2016-01-01"
-    priority_symbols: str = "AAPL,MSFT,GOOGL,AMZN,NVDA"
+    priority_symbols: str = "SPY,QQQ,AAPL,MSFT,GOOGL,AMZN,NVDA"
     sync_timeframes: str = "1Hour,1Day,1Week"
+    priority_intraday_timeframes: str = "5Min"
+    classifier_url: str = "http://localhost:8080"
 
     @property
     def priority_symbol_list(self) -> list[str]:
@@ -24,6 +26,10 @@ class Settings(BaseSettings):
     @property
     def timeframe_list(self) -> list[str]:
         return [t.strip() for t in self.sync_timeframes.split(",") if t.strip()]
+
+    @property
+    def priority_intraday_timeframe_list(self) -> list[str]:
+        return [t.strip() for t in self.priority_intraday_timeframes.split(",") if t.strip()]
 
 
 settings = Settings()

@@ -733,6 +733,152 @@ body {
   color: var(--text-dim);
 }
 
+.ai-analysis-controls {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px 16px;
+  align-items: end;
+  margin-bottom: 16px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.ai-control label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.ai-symbol-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ai-symbol-display {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.ai-select,
+.ai-input {
+  width: 100%;
+  padding: 7px 10px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.ai-select:focus,
+.ai-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+}
+
+.ai-analyze-btn {
+  padding: 8px 18px;
+  background: var(--accent);
+  color: var(--bg);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 120ms;
+}
+
+.ai-analyze-btn:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.ai-analyze-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.ai-analysis-chart-card {
+  min-height: 420px;
+  margin-bottom: 16px;
+}
+
+.pattern-legend {
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.pattern-legend.empty p {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.pattern-legend-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.pattern-legend-header h3 {
+  font-size: 13px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+
+.pattern-legend-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  font-family: "IBM Plex Mono", monospace;
+}
+
+.pattern-legend-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+
+.pattern-legend-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 12px;
+  background: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.pattern-legend-label {
+  font-size: 13px;
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.pattern-legend-stats {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.pattern-legend-item.bullish .pattern-legend-label {
+  color: var(--positive);
+}
+
+.pattern-legend-item.bearish .pattern-legend-label {
+  color: var(--negative);
+}
+
 /* ── Responsive ── */
 
 @media (max-width: 768px) {

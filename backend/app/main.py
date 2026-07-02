@@ -7,6 +7,7 @@ from fastapi.staticfiles import StaticFiles
 
 from marketpulse.config import settings
 from app.routes.market import router as market_router
+from app.routes.analysis import router as analysis_router
 
 app = FastAPI(title="MarketPulse API", version="0.2.0")
 
@@ -20,6 +21,7 @@ app.add_middleware(
 )
 
 app.include_router(market_router, prefix="/api")
+app.include_router(analysis_router, prefix="/api")
 
 STATIC_DIR = Path(__file__).resolve().parent.parent / "static"
 

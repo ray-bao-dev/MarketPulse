@@ -1,9 +1,9 @@
 [build]
 builder = "DOCKERFILE"
 dockerfilePath = "Dockerfile"
-watchPatterns = ["backend/**"]
+watchPatterns = ["classifier/**", "models/**", "requirements.txt", "run.py", "Dockerfile"]
 
 [deploy]
-healthcheckPath = "/api/health"
+healthcheckPath = "/health"
 restartPolicyType = "ON_FAILURE"
 restartPolicyMaxRetries = 3
