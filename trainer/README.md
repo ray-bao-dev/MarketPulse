@@ -52,6 +52,8 @@ Worker must have synced **5Min** bars for your symbols (`PRIORITY_INTRADAY_TIMEF
 
 Requires PostgreSQL with bars. **TA-Lib** is installed via the PyPI wheel (`TA-Lib>=0.6.5`, bundles the C library — no apt packages needed in Docker).
 
+Docker uses **CPU-only PyTorch** (~200MB vs ~2GB CUDA wheel from PyPI). Inference runtime (`onnxruntime`) lives on the Classifier service, not here.
+
 ```bash
 cd trainer
 pip install -r requirements.txt
